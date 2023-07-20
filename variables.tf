@@ -244,8 +244,8 @@ variable "alertmanager" {
   })
 }
 
-variable "bootstrap_secrets" {
-  description = "Secrets that boostrap the orchestration"
+variable "receiver_secrets" {
+  description = "Secrets needed for the receivers"
   sensitive = true
   type = list(object({
     path  = string

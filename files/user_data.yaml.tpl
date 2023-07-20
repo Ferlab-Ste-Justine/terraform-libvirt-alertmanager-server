@@ -19,9 +19,9 @@ users:
     ssh_authorized_keys:
       - "${ssh_admin_public_key}"
 
-%{ if length(bootstrap_secrets) > 0 ~}
+%{ if length(receiver_secrets) > 0 ~}
 write_files:
-%{ for secret in bootstrap_secrets ~}
+%{ for secret in receiver_secrets ~}
   - path: ${secret.path}
     owner: root:root
     permissions: "0400"
@@ -30,7 +30,7 @@ write_files:
 %{ endfor ~}
 
 runcmd:
-%{ for secret in bootstrap_secrets ~}
+%{ for secret in receiver_secrets ~}
   - chown alertmanager:alertmanager ${secret.path}
 %{ endfor ~}
 %{ endif ~}

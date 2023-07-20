@@ -218,7 +218,7 @@ locals {
             ssh_admin_public_key = var.ssh_admin_public_key
             ssh_admin_user = var.ssh_admin_user
             admin_user_password = var.admin_user_password
-            bootstrap_secrets = var.bootstrap_secrets
+            receiver_secrets = var.receiver_secrets
           }
         )
       },
