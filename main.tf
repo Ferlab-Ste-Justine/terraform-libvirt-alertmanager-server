@@ -21,6 +21,11 @@ locals {
   volumes = var.data_volume_id != "" ? [var.volume_id, var.data_volume_id] : [var.volume_id]
   fluentbit_updater_etcd = var.fluentbit.enabled && var.fluentbit_dynamic_config.enabled && var.fluentbit_dynamic_config.source == "etcd"
   fluentbit_updater_git = var.fluentbit.enabled && var.fluentbit_dynamic_config.enabled && var.fluentbit_dynamic_config.source == "git"
+  self_ips = concat(
+    [for libvirt_network in var.libvirt_networks: libvirt_network.ip],
+    [for macvtap_interface in var.macvtap_interfaces: macvtap_interface.ip]
+  )
+  trimmed_peers_list = [for peer in var.alertmanager.peers: peer if !contains(local.self_ips, peer)]
 }
 
 module "network_configs" {
@@ -82,7 +87,16 @@ module "alertmanager_config_updater_configs" {
 module "alertmanager_configs" {
   source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//alertmanager?ref=feature/alertmanager"
   install_dependencies = var.install_dependencies
-  alertmanager = var.alertmanager
+  alertmanager = {
+    external_url = var.alertmanager.external_url
+    data_retention = var.alertmanager.data_retention
+    cluster = {
+      advertise_address = local.self_ips.0
+      peers = local.trimmed_peers_list
+    }
+    tls = var.alertmanager.tls
+    basic_auth = var.alertmanager.basic_auth
+  }
 }
 
 module "prometheus_node_exporter_configs" {

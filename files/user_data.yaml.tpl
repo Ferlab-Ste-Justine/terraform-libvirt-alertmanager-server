@@ -21,12 +21,16 @@ users:
 
 %{ if length(bootstrap_secrets) > 0 ~}
 write_files:
-#bootstrap secrets
 %{ for secret in bootstrap_secrets ~}
   - path: ${secret.path}
     owner: root:root
     permissions: "0400"
     content: |
       ${indent(6, secret.content)}
+%{ endfor ~}
+
+runcmd:
+%{ for secret in bootstrap_secrets ~}
+  - chown alertmanager:alertmanager ${secret.path}
 %{ endfor ~}
 %{ endif ~}
