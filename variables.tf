@@ -30,13 +30,13 @@ variable "data_volume_id" {
 variable "libvirt_networks" {
   description = "Parameters of libvirt network connections if a libvirt networks are used."
   type = list(object({
-    network_name = string
-    network_id = string
+    network_name = optional(string, "")
+    network_id = optional(string, "")
     prefix_length = string
     ip = string
     mac = string
-    gateway = string
-    dns_servers = list(string)
+    gateway = optional(string, "")
+    dns_servers = optional(list(string), [])
   }))
   default = []
 }
@@ -48,8 +48,8 @@ variable "macvtap_interfaces" {
     prefix_length = string
     ip            = string
     mac           = string
-    gateway       = string
-    dns_servers   = list(string)
+    gateway       = optional(string, "")
+    dns_servers   = optional(list(string), [])
   }))
   default = []
 }
@@ -90,10 +90,10 @@ variable "etcd" {
     endpoints = list(string)
     ca_certificate = string
     client = object({
-      certificate = string
-      key = string
-      username = string
-      password = string
+      certificate = optional(string, "")
+      key = optional(string, "")
+      username = optional(string, "")
+      password = optional(string, "")
     })
   })
 }
@@ -136,9 +136,12 @@ variable "fluentbit" {
     alertmanager_tag = string
     alertmanager_updater_tag = string
     node_exporter_tag = string
-    metrics = object({
+    metrics = optional(object({
       enabled = bool
       port    = number
+    }), {
+      enabled = false
+      port = 0
     })
     forward = object({
       domain = string
@@ -172,7 +175,7 @@ variable "fluentbit_dynamic_config" {
   type = object({
     enabled = bool
     source  = string
-    etcd    = object({
+    etcd    = optional(object({
       key_prefix     = string
       endpoints      = list(string)
       ca_certificate = string
@@ -182,8 +185,18 @@ variable "fluentbit_dynamic_config" {
         username    = string
         password    = string
       })
+    }), {
+      key_prefix     = ""
+      endpoints      = []
+      ca_certificate = ""
+      client         = {
+        certificate = ""
+        key         = ""
+        username    = ""
+        password    = ""
+      }
     })
-    git     = object({
+    git     = optional(object({
       repo             = string
       ref              = string
       path             = string
@@ -192,6 +205,15 @@ variable "fluentbit_dynamic_config" {
         client_ssh_key         = string
         server_ssh_fingerprint = string
       })
+    }), {
+      repo             = ""
+      ref              = ""
+      path             = ""
+      trusted_gpg_keys = []
+      auth             = {
+        client_ssh_key         = ""
+        server_ssh_fingerprint = ""
+      }
     })
   })
   default = {
@@ -230,16 +252,19 @@ variable "alertmanager" {
   description = "Alertmanager configurations"
   type = object({
     external_url = string
-    data_retention = string
+    data_retention = optional(string, "120h")
     peers = list(string)
     tls = object({
       ca_cert     = string
       server_cert = string
       server_key  = string
     })
-    basic_auth = object({
+    basic_auth = optional(object({
       username        = string
       hashed_password = string
+    }), {
+      username        = ""
+      hashed_password = ""
     })
   })
 }
